@@ -1,0 +1,16 @@
+# 运行产物
+artifacts/
+reports/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+build/
+dist/
+
+# 编辑器
+.vscode/
+.idea/
+.DS_Store
