@@ -1,0 +1,61 @@
+name = "full"
+version = "1.0"
+description = "六环全集：标注转换 -> 入库质检 -> 质量测评 -> 合规扫描 -> 血缘追踪 -> 报告汇总"
+
+[[step]]
+id = "prep"
+note = "Labelme 多边形转二值掩码（缺数据集时跳过）"
+cwd = "vendor/prep"
+command = ["{python}", "tools/convert_labelme_to_mask.py"]
+requires = ["dataset"]
+timeout = 600
+
+[[step]]
+id = "qc"
+note = "入库前质检：需要先取回真实仓库，并放一个 .vendored 标记文件"
+cwd = "vendor/qc"
+command = ["{python}", "-m", "qc", "--help"]
+requires = [".vendored"]
+timeout = 120
+
+[[step]]
+id = "cost"
+note = "训练无关的质量评分（需要 NEU-CLS 图像，缺失时跳过）"
+cwd = "vendor/cost"
+command = ["{python}", "src/build_versions.py"]
+requires = ["data/neu-cls"]
+timeout = 3600
+
+[[step]]
+id = "fixtures"
+note = "生成演示用假数据"
+cwd = "vendor/lineage"
+command = ["{python}", "examples/make_fixtures.py", "--out", "{out}/data/raw_users.csv"]
+produces = ["{out}/data/raw_users.csv"]
+timeout = 120
+
+[[step]]
+id = "pii"
+note = "敏感信息扫描"
+cwd = "vendor/pii"
+command = ["{python}", "-m", "piiscan", "scan", "data/sample.txt", "--format", "json", "-o", "{out}/pii/pii.json"]
+requires = ["data/sample.txt"]
+produces = ["{out}/pii/pii.json"]
+timeout = 120
+
+[[step]]
+id = "lineage"
+note = "血缘采集"
+cwd = "vendor/lineage"
+command = ["{python}", "examples/pipeline_demo.py", "--raw", "{out}/data/raw_users.csv", "--artifacts", "{out}/lineage"]
+requires = ["examples/pipeline_demo.py"]
+produces = ["{out}/lineage/lineage/demo.json"]
+timeout = 180
+
+[[step]]
+id = "report"
+note = "单文件离线报告"
+cwd = "vendor/qdash"
+command = ["{python}", "-m", "qdash", "collect", "{out}", "-o", "{out}/report/report.json", "--html", "{out}/report/report.html"]
+produces = ["{out}/report/report.json", "{out}/report/report.html"]
+timeout = 180

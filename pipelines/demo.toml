@@ -1,0 +1,37 @@
+name = "demo"
+version = "1.0"
+description = "四段可离线跑通：造夹具 -> PII 扫描 -> 血缘采集 -> 单文件报告"
+
+[[step]]
+id = "fixtures"
+note = "生成演示用假数据（固定种子，可重复）"
+cwd = "vendor/lineage"
+command = ["{python}", "examples/make_fixtures.py", "--out", "{out}/data/raw_users.csv"]
+produces = ["{out}/data/raw_users.csv"]
+timeout = 120
+
+[[step]]
+id = "pii"
+note = "扫描仓库自带的虚构样例，输出命中清单"
+cwd = "vendor/pii"
+command = ["{python}", "-m", "piiscan", "scan", "data/sample.txt", "--format", "json", "-o", "{out}/pii/pii.json"]
+requires = ["data/sample.txt"]
+produces = ["{out}/pii/pii.json"]
+timeout = 120
+
+[[step]]
+id = "lineage"
+note = "跑一遍三步演示流水线，导出 Mermaid 与 JSON"
+cwd = "vendor/lineage"
+command = ["{python}", "examples/pipeline_demo.py", "--raw", "{out}/data/raw_users.csv", "--artifacts", "{out}/lineage"]
+requires = ["examples/pipeline_demo.py"]
+produces = ["{out}/lineage/lineage/demo.json"]
+timeout = 180
+
+[[step]]
+id = "report"
+note = "把上面的 JSON 聚合成单文件离线 HTML"
+cwd = "vendor/qdash"
+command = ["{python}", "-m", "qdash", "collect", "{out}", "-o", "{out}/report/report.json", "--html", "{out}/report/report.html", "--title", "dq-platform demo"]
+produces = ["{out}/report/report.json", "{out}/report/report.html"]
+timeout = 180

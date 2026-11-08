@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use this code or the dataset versions, please cite this project."
+title: "Quantifying the Cost of Dirty Data: A Controlled Study of Dataset Defects on Surface-Defect Classification"
+authors:
+  - name: "dirty-data-cost contributors"
+year: 2026
+license: MIT
+type: software
+repository-code: "https://github.com/Speixum/dirty-data-cost"
+keywords:
+  - dataset quality
+  - data-centric evaluation
+  - controlled corruption
+  - surface defect classification
+  - training-free quality score
