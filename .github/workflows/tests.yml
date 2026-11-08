@@ -1,0 +1,35 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: demo pipeline
+        run: python -m dqplat run demo
+
+      - name: validate artifacts
+        run: |
+          python -m dqplat validate \
+            artifacts/runs/*/pii/pii.json \
+            artifacts/runs/*/lineage/lineage/demo.json \
+            artifacts/runs/*/report/report.json
+
+      - name: no third-party imports
+        run: python -c "import sys, pathlib; bad=[m for m in sys.modules if m.split('.')[0] in {'requests','yaml','jinja2','pandas','numpy'}]; raise SystemExit(1 if bad else 0)"
